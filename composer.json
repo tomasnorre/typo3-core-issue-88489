@@ -1,0 +1,57 @@
+{
+    "name": "tomasnorre/typo3-core-issue-88489",
+    "type": "typo3-cms-extension",
+    "require": {
+        "typo3/cms-core": "^7.6"
+    },
+    "require-dev": {
+        "typo3/cms": "^7.6",
+        "nimut/testing-framework": "^2.0"
+    },
+    "config": {
+        "secure-http": false,
+        "vendor-dir": ".Build/vendor",
+        "bin-dir": ".Build/bin"
+    },
+    "extra": {
+        "typo3/cms": {
+            "cms-package-dir": "{$vendor-dir}/typo3/cms",
+            "web-dir": ".Build/Web"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "mkdir -p .Build/Web/typo3conf/ext/",
+            "[ -L .Build/Web/typo3conf/ext/typo3-core-issue-88489 ] || ln -snvf ../../../../. .Build/Web/typo3conf/ext/typo3-core-issue-88489"
+        ],
+        "test:functional-mysql-5-6": [
+            "docker-compose -f docker-compose-mysql-5-6.yml up -d",
+            "@composer test:functional",
+            "docker-compose -f docker-compose-mysql-5-6.yml down"
+        ],
+        "test:functional-mysql-5-7": [
+            "docker-compose -f docker-compose-mysql-5-7.yml up -d",
+            "@composer test:functional",
+            "docker-compose -f docker-compose-mysql-5-7.yml down"
+        ],
+        "test:functional-maria-10-2": [
+            "docker-compose -f docker-compose-mariadb-10-2.yml up -d",
+            "@composer test:functional",
+            "docker-compose -f docker-compose-mariadb-10-2.yml down"
+        ],
+        "test:functional-maria-10-4": [
+            "docker-compose -f docker-compose-mariadb-10-4.yml up -d",
+            "@composer test:functional",
+            "docker-compose -f docker-compose-mariadb-10-4.yml down"
+        ],
+        "test:functional": [
+            "[ -e .Build/bin/phpunit ] || composer update",
+            "echo 'waiting for db-container'; sleep 60",
+            "@composer test:cleanup",
+            "TYPO3_PATH_WEB=$PWD/.Build/Web typo3DatabaseName=typo3 typo3DatabaseHost=127.0.0.1 typo3DatabasePort=3366 typo3DatabaseUsername=root typo3DatabasePassword=root .Build/bin/phpunit -c .Build/vendor/nimut/testing-framework/res/Configuration/FunctionalTests.xml Tests/Functional"
+        ],
+        "test:cleanup": [
+            "rm -rf .Build/Web/typo3temp/var/tests/*"
+        ]
+    }
+}
